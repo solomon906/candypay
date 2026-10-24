@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CandyPay - Play, Invite & Earn</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:linear-gradient(135deg,#ff6b9d,#c44569,#f8b500);min-height:100vh;color:white}
+.nav{padding:15px;text-align:center;font-weight:bold;font-size:24px}
+.container{max-width:420px;margin:0 auto;padding:15px}
+.card{background:white;color:#222;border-radius:22px;padding:26px;margin:12px 0;box-shadow:0 15px 40px rgba(0,0,0,.35)}
+.btn{width:100%;padding:15px;background:linear-gradient(90deg,#ff6b9d,#c44569);color:white;border:none;border-radius:14px;font-weight:800;font-size:16px;cursor:pointer;margin:10px 0}
+.btn-green{background:linear-gradient(90deg,#00b09b,#96c93d)}
+.opay{background:#fff1f6;border:2px dashed #ff6b9d;padding:14px;border-radius:14px;margin:14px 0}
+input{width:100%;padding:13px;border:2px solid #eee;border-radius:12px;margin:7px 0;font-size:15px}
+.hidden{display:none}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:15px 0}
+.candy{height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;background:#ffe6ee}
+.badge{background:#ff6b9d;color:white;padding:4px 10px;border-radius:20px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="nav">🍬 CandyPay</div>
+<div class="container">
+<div id="loginPage" class="card">
+<h2>Welcome to CandyPay</h2>
+<p style="margin:8px 0">Invited by: <span id="inviter" class="badge">None</span></p>
+<input id="username" placeholder="Choose Username">
+<input id="phone" placeholder="WhatsApp Number">
+<button class="btn" onclick="register()">Continue to Payment</button>
+</div>
+<div id="payPage" class="card hidden">
+<h2>🔒 Pay ₦3000 to Unlock</h2>
+<div class="opay">
+<p><b>Opay Account:</b> <span style="font-size:20px;font-weight:900">7057659419</span></p>
+<p><b>Name:</b> Micheal Ayomide Solomon</p>
+<p><b>Amount:</b> ₦3,000</p>
+</div>
+<input id="transId" placeholder="Transaction ID after payment">
+<button class="btn" onclick="submitPayment()">I Have Paid</button>
+</div>
+<div id="waitPage" class="card hidden">
+<h2>⏳ Verifying Payment</h2>
+<p>We dey check your Opay payment to <b>7057659419</b></p>
+<div style="background:#f5f5f5;padding:10px;border-radius:10px;word-break:break-all" id="myLink"></div>
+<button class="btn" onclick="checkApproval()">Check Approval Status</button>
+</div>
+<div id="gamePage" class="card hidden">
+<h2>🍭 CandyPay Game</h2>
+<p>Score: <b id="score">0</b></p>
+<div id="board" class="grid"></div>
+<div style="background:#f5f5f5;padding:10px;border-radius:10px;word-break:break-all" id="gameLink"></div>
+<button class="btn" onclick="shareLink()">Share on WhatsApp</button>
+</div>
+</div>
+<script>
+const SUPABASE_URL = "https://ldmwqodeyvtcufixkulv.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkbXdxb2RleXZ0Y3VmaXhrdWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NjAxMjAsImV4cCI6MjEwODQzNjEyMH0.sK4WSMGWddpbDgjPQGnlqqh1LLoNk2ZCDhhf7NZ26_c";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let currentUser = JSON.parse(localStorage.getItem('candypay_user')||'null');
+const inviteCode = new URLSearchParams(window.location.search).get('inv');
+if(inviteCode) document.getElementById('inviter').innerText = inviteCode;
+if(currentUser){ if(currentUser.approved) showGame(); else if(currentUser.paid) showWait(); else showPay(); }
+async function register(){ const u=document.getElementById('username').value.trim(); const p=document.getElementById('phone').value.trim(); if(!u||!p) return alert('Fill all'); const {data,error}=await supabaseClient.from('users').insert([{username:u,phone:p,inviter:inviteCode||'none',paid:false,approved:false}]).select().single(); if(error) return alert('Error: '+error.message+' - Run SQL in Supabase'); localStorage.setItem('candypay_user', JSON.stringify(data)); currentUser=data; showPay(); }
+function hideAll(){ ['loginPage','payPage
